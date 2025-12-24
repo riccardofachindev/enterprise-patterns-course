@@ -69,13 +69,13 @@ export class SliderComponent implements OnInit {
 
     this.minValue = valueStream
       .pipe(
-        map(vals => vals.min),
+        map(vals => vals),
         startWith(this.startMin)
       );
 
     this.maxValue = valueStream
       .pipe(
-        map(vals => vals.max),
+        map(vals => vals),
         startWith(this.startMax)
       );
   }
