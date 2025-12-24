@@ -11,7 +11,7 @@
     "serve:json": "json-server server/db.json --port 3100 --watch",
     "serve:api": "nx run api:serve",
     "serve:micro": "nx run micro:serve --port=4300 --open",
-    "serve:meso": "nx run meso:serve --port=4400 --open",
+    "serve:meso": "set NODE_OPTIONS=--openssl-legacy-provider && nx run meso:serve --port=4400 --open",
     "serve:macro": "ng serve --open",
     "serve:mega": "nx run mega:serve --port=4500 --open",
     "serve:finale": "concurrently \"npm run serve:socketio\" \"npm run serve:api\" \"npm run serve:mega\"",
