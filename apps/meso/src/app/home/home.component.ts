@@ -44,39 +44,6 @@ const initialClientsState: ClientState = {
   currentClient: newClient,
 };
 
-class ClientsStore {
-  state: ClientState;
-
-  constructor(state: ClientState) {
-    this.state = state;
-  }
-
-  getState() {
-    return this.state;
-  }
-
-  select(key: string) {
-    return this.state[key];
-  }
-
-  /*
-  load(newClients: Client[]) {
-    this.clients = newClients;
-  }
-
-  select(client: Client) {
-    this.currentClient = client;
-  }
-
-  create(client: Client) {
-    this.clients = [...this.clients, client];
-  }
-*/
-}
-
-const clientStore = new ClientsStore(initialClientsState);
-const currentClient = clientStore.select('currentClient');
-
 interface BaseEntity {
   id: string;
 }
@@ -159,38 +126,52 @@ enum ActionTypesEnum {
 }
 
 interface Action {
-  type: string;
+  type: ActionTypesEnum;
   payload: any;
 }
 
-const loadClients = (state: ClientState, clients: Client[]) => {
-  console.log(ActionTypesEnum.CLIENT_LOAD, clients);
-  return state;
+const loadClients = (state: ClientState, clients: Client[]): ClientState => {
+  return {
+    clients,
+    currentClient: state.currentClient,
+  };
 };
 
-const selectClient = (state: ClientState, client: Client) => {
-  console.log(ActionTypesEnum.CLIENT_SELECT, client);
-  return state;
+const selectClient = (state: ClientState, client: Client): ClientState => {
+  return {
+    clients: state.clients,
+    currentClient: client,
+  };
 };
 
-const deleteClient = (state: ClientState, client: Client) => {
-  console.log(ActionTypesEnum.CLIENT_DELETE, client);
-  return state;
+const deleteClient = (state: ClientState, client: Client): ClientState => {
+  return {
+    clients: state.clients.filter((c) => c.id !== client.id),
+    currentClient: state.currentClient,
+  };
 };
 
-const clearClient = (state: ClientState, client: Client) => {
-  console.log(ActionTypesEnum.CLIENT_CLEAR, client);
-  return state;
+const clearClient = (state: ClientState): ClientState => {
+  return {
+    clients: state.clients,
+    currentClient: null,
+  };
 };
 
-const createClient = (state: ClientState, client: Client) => {
-  console.log(ActionTypesEnum.CLIENT_CREATE, client);
-  return state;
+const createClient = (state: ClientState, client: Client): ClientState => {
+  return {
+    clients: [...state.clients, client],
+    currentClient: state.currentClient,
+  };
 };
 
-const updateClient = (state: ClientState, client: Client) => {
-  console.log(ActionTypesEnum.CLIENT_UPDATE, client);
-  return state;
+const updateClient = (state: ClientState, client: Client): ClientState => {
+  return {
+    clients: state.clients.map((selClient) => {
+      return selClient.id === client.id ? Object.assign({}, client) : selClient;
+    }),
+    currentClient: state.currentClient,
+  };
 };
 
 const clientsReducer = (
@@ -203,19 +184,70 @@ const clientsReducer = (
     case ActionTypesEnum.CLIENT_SELECT:
       return selectClient(state, action.payload);
     case ActionTypesEnum.CLIENT_CLEAR:
-      return selectClient(state, action.payload);
+      return clearClient(state);
     case ActionTypesEnum.CLIENT_CREATE:
-      return selectClient(state, action.payload);
+      return createClient(state, action.payload);
     case ActionTypesEnum.CLIENT_UPDATE:
-      return selectClient(state, action.payload);
+      return updateClient(state, action.payload);
     case ActionTypesEnum.CLIENT_DELETE:
-      return selectClient(state, action.payload);
+      return deleteClient(state, action.payload);
     default:
       return state;
   }
 };
 
-const tango = projectsInStore;
+class ClientsStore {
+  reducer;
+  state: ClientState;
+
+  constructor(state: ClientState, reducer) {
+    this.state = state;
+    this.reducer = reducer;
+  }
+
+  getState() {
+    return this.state;
+  }
+
+  select(key: string) {
+    return this.state[key];
+  }
+
+  dispatch(action: Action) {
+    this.state = this.reducer(this.state, action);
+  }
+
+  /*
+  load(newClients: Client[]) {
+    this.clients = newClients;
+  }
+
+  select(client: Client) {
+    this.currentClient = client;
+  }
+
+  create(client: Client) {
+    this.clients = [...this.clients, client];
+  }
+*/
+}
+
+const clientStore = new ClientsStore(initialClientsState, clientsReducer);
+const currentClient = clientStore.select('currentClient');
+
+const aClient = clientStore.select('currentClient');
+
+const mia: Client = {
+  id: '123',
+  firstName: 'Mia',
+  lastName: 'Martini',
+  company: 'Anon',
+};
+
+clientStore.dispatch({ type: ActionTypesEnum.CLIENT_CREATE, payload: mia });
+const allClients = clientStore.select('clients');
+
+const tango = allClients;
 
 @Component({
   selector: 'fem-home',
